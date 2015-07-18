@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<process version="5.3.012">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="5.3.012" expanded="true" name="Process">
+    <process expanded="true">
+      <operator activated="true" class="text:process_document_from_file" compatibility="5.3.002" expanded="true" height="76" name="Process Documents from Files" width="90" x="112" y="165">
+        <list key="text_directories">
+          <parameter key="dummy" value="E:\University\RA\p"/>
+        </list>
+        <process expanded="true">
+          <operator activated="true" class="text:transform_cases" compatibility="5.3.002" expanded="true" name="Transform Cases"/>
+          <operator activated="true" class="text:replace_tokens" compatibility="5.3.002" expanded="true" name="Replace Tokens">
+            <list key="replace_dictionary">
+              <parameter key="\*\*\*.*\*\*\*" value=" "/>
+            </list>
+          </operator>
+          <operator activated="true" class="text:remove_document_parts" compatibility="5.3.002" expanded="true" name="RemoveDocumentForSkype">
+            <parameter key="deletion_regex" value="\[[^a-z]*\]"/>
+          </operator>
+          <operator activated="true" class="text:remove_document_parts" compatibility="5.3.002" expanded="true" name="Remove DocumentForFB">
+            <parameter key="deletion_regex" value="[0-9|/|\s]*:[0-9][0-9]"/>
+          </operator>
+          <operator activated="true" class="text:tokenize" compatibility="5.3.002" expanded="true" name="Tokenize">
+            <parameter key="mode" value="regular expression"/>
+            <parameter key="characters" value=".:, !#%&amp;()|\/`'\n'\t'"/>
+            <parameter key="expression" value="[^(\p{L}0-9)]|\(|\)"/>
+          </operator>
+          <operator activated="true" class="text:filter_stopwords_french" compatibility="5.3.002" expanded="true" name="Filter Stopwords (French)"/>
+          <operator activated="true" class="text:filter_by_length" compatibility="5.3.002" expanded="true" name="Filter Tokens (by Length)">
+            <parameter key="min_chars" value="2"/>
+            <parameter key="max_chars" value="20"/>
+          </operator>
+          <connect from_port="document" to_op="Transform Cases" to_port="document"/>
+          <connect from_op="Transform Cases" from_port="document" to_op="Replace Tokens" to_port="document"/>
+          <connect from_op="Replace Tokens" from_port="document" to_op="RemoveDocumentForSkype" to_port="document"/>
+          <connect from_op="RemoveDocumentForSkype" from_port="document" to_op="Remove DocumentForFB" to_port="document"/>
+          <connect from_op="Remove DocumentForFB" from_port="document" to_op="Tokenize" to_port="document"/>
+          <connect from_op="Tokenize" from_port="document" to_op="Filter Stopwords (French)" to_port="document"/>
+          <connect from_op="Filter Stopwords (French)" from_port="document" to_op="Filter Tokens (by Length)" to_port="document"/>
+          <connect from_op="Filter Tokens (by Length)" from_port="document" to_port="document 1"/>
+          <portSpacing port="source_document" spacing="0"/>
+          <portSpacing port="sink_document 1" spacing="0"/>
+          <portSpacing port="sink_document 2" spacing="0"/>
+        </process>
+      </operator>
+      <operator activated="true" class="read_model" compatibility="5.3.012" expanded="true" height="60" name="Read Model" width="90" x="112" y="75">
+        <parameter key="model_file" value="C:\resolute\model_Anomaly"/>
+      </operator>
+      <operator activated="true" class="apply_model" compatibility="5.3.012" expanded="true" height="76" name="Apply Model" width="90" x="380" y="75">
+        <list key="application_parameters"/>
+      </operator>
+      <connect from_op="Process Documents from Files" from_port="example set" to_op="Apply Model" to_port="unlabelled data"/>
+      <connect from_op="Read Model" from_port="output" to_op="Apply Model" to_port="model"/>
+      <connect from_op="Apply Model" from_port="labelled data" to_port="result 2"/>
+      <connect from_op="Apply Model" from_port="model" to_port="result 1"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+      <portSpacing port="sink_result 3" spacing="0"/>
+    </process>
+  </operator>
+</process>

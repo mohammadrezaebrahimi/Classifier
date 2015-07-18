@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<process version="5.3.012">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="5.3.012" expanded="true" name="Process">
+    <process expanded="true">
+      <operator activated="true" class="text:process_document_from_file" compatibility="5.3.002" expanded="true" height="76" name="Process Documents from Files" width="90" x="112" y="75">
+        <list key="text_directories">
+          <parameter key="p" value="E:\University\RA\p"/>
+          <parameter key="np" value="E:\University\RA\p"/>
+        </list>
+        <process expanded="true">
+          <operator activated="true" class="text:transform_cases" compatibility="5.3.002" expanded="true" height="60" name="Transform Cases" width="90" x="45" y="30"/>
+          <operator activated="true" class="text:replace_tokens" compatibility="5.3.002" expanded="true" height="60" name="Replace Tokens" width="90" x="179" y="30">
+            <list key="replace_dictionary">
+              <parameter key="\*\*\*.*\*\*\*" value=" "/>
+            </list>
+          </operator>
+          <operator activated="true" class="text:remove_document_parts" compatibility="5.3.002" expanded="true" height="60" name="RemoveDocumentForSkype" width="90" x="179" y="120">
+            <parameter key="deletion_regex" value="\[[^a-z]*\]"/>
+          </operator>
+          <operator activated="true" class="text:remove_document_parts" compatibility="5.3.002" expanded="true" height="60" name="Remove DocumentForFB" width="90" x="179" y="210">
+            <parameter key="deletion_regex" value="[0-9|/|\s]*:[0-9][0-9]"/>
+          </operator>
+          <operator activated="true" class="text:tokenize" compatibility="5.3.002" expanded="true" height="60" name="Tokenize" width="90" x="313" y="30">
+            <parameter key="mode" value="regular expression"/>
+            <parameter key="characters" value=".:, !#%&amp;()|\/`'\n'\t'"/>
+            <parameter key="expression" value="[^(\p{L}0-9)]|\(|\)"/>
+          </operator>
+          <operator activated="true" class="text:filter_stopwords_french" compatibility="5.3.002" expanded="true" height="60" name="Filter Stopwords (French)" width="90" x="447" y="30"/>
+          <operator activated="true" class="text:filter_by_length" compatibility="5.3.002" expanded="true" height="60" name="Filter Tokens (by Length)" width="90" x="514" y="120">
+            <parameter key="min_chars" value="2"/>
+            <parameter key="max_chars" value="20"/>
+          </operator>
+          <connect from_port="document" to_op="Transform Cases" to_port="document"/>
+          <connect from_op="Transform Cases" from_port="document" to_op="Replace Tokens" to_port="document"/>
+          <connect from_op="Replace Tokens" from_port="document" to_op="RemoveDocumentForSkype" to_port="document"/>
+          <connect from_op="RemoveDocumentForSkype" from_port="document" to_op="Remove DocumentForFB" to_port="document"/>
+          <connect from_op="Remove DocumentForFB" from_port="document" to_op="Tokenize" to_port="document"/>
+          <connect from_op="Tokenize" from_port="document" to_op="Filter Stopwords (French)" to_port="document"/>
+          <connect from_op="Filter Stopwords (French)" from_port="document" to_op="Filter Tokens (by Length)" to_port="document"/>
+          <connect from_op="Filter Tokens (by Length)" from_port="document" to_port="document 1"/>
+          <portSpacing port="source_document" spacing="0"/>
+          <portSpacing port="sink_document 1" spacing="0"/>
+          <portSpacing port="sink_document 2" spacing="0"/>
+        </process>
+      </operator>
+      <operator activated="true" class="x_validation" compatibility="5.3.012" expanded="true" height="112" name="Validation" width="90" x="313" y="75">
+        <process expanded="true">
+          <operator activated="true" class="support_vector_machine_libsvm" compatibility="5.3.012" expanded="true" height="76" name="SVM" width="90" x="112" y="30">
+            <parameter key="kernel_type" value="linear"/>
+            <parameter key="C" value="100.0"/>
+            <list key="class_weights"/>
+          </operator>
+          <connect from_port="training" to_op="SVM" to_port="training set"/>
+          <connect from_op="SVM" from_port="model" to_port="model"/>
+          <portSpacing port="source_training" spacing="0"/>
+          <portSpacing port="sink_model" spacing="0"/>
+          <portSpacing port="sink_through 1" spacing="0"/>
+        </process>
+        <process expanded="true">
+          <operator activated="true" class="apply_model" compatibility="5.3.012" expanded="true" height="76" name="Apply Model" width="90" x="45" y="30">
+            <list key="application_parameters"/>
+          </operator>
+          <operator activated="true" class="performance_binominal_classification" compatibility="5.3.012" expanded="true" height="76" name="Performance" width="90" x="179" y="30">
+            <parameter key="AUC (optimistic)" value="true"/>
+            <parameter key="AUC" value="true"/>
+            <parameter key="AUC (pessimistic)" value="true"/>
+            <parameter key="precision" value="true"/>
+            <parameter key="recall" value="true"/>
+            <parameter key="f_measure" value="true"/>
+            <parameter key="false_positive" value="true"/>
+            <parameter key="false_negative" value="true"/>
+            <parameter key="true_positive" value="true"/>
+            <parameter key="true_negative" value="true"/>
+          </operator>
+          <connect from_port="model" to_op="Apply Model" to_port="model"/>
+          <connect from_port="test set" to_op="Apply Model" to_port="unlabelled data"/>
+          <connect from_op="Apply Model" from_port="labelled data" to_op="Performance" to_port="labelled data"/>
+          <connect from_op="Performance" from_port="performance" to_port="averagable 1"/>
+          <portSpacing port="source_model" spacing="0"/>
+          <portSpacing port="source_test set" spacing="0"/>
+          <portSpacing port="source_through 1" spacing="0"/>
+          <portSpacing port="sink_averagable 1" spacing="0"/>
+          <portSpacing port="sink_averagable 2" spacing="0"/>
+        </process>
+      </operator>
+      <operator activated="true" class="write_model" compatibility="5.3.012" expanded="true" height="60" name="Write Model" width="90" x="447" y="30">
+        <parameter key="model_file" value="C:\resolute\model"/>
+      </operator>
+      <operator activated="true" class="write_performance" compatibility="5.3.012" expanded="true" height="60" name="Write Performance" width="90" x="447" y="120">
+        <parameter key="performance_file" value="C:\resolute\performance"/>
+      </operator>
+      <connect from_op="Process Documents from Files" from_port="example set" to_op="Validation" to_port="training"/>
+      <connect from_op="Validation" from_port="model" to_op="Write Model" to_port="input"/>
+      <connect from_op="Validation" from_port="training" to_port="result 2"/>
+      <connect from_op="Validation" from_port="averagable 1" to_op="Write Performance" to_port="input"/>
+      <connect from_op="Write Model" from_port="through" to_port="result 1"/>
+      <connect from_op="Write Performance" from_port="through" to_port="result 3"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+      <portSpacing port="sink_result 3" spacing="0"/>
+      <portSpacing port="sink_result 4" spacing="0"/>
+    </process>
+  </operator>
+</process>
